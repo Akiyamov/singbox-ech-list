@@ -1,6 +1,6 @@
 #/bin/bash
 
-curl -s https://api.github.com/repos/1andrevich/Re-filter-lists/releases/latest | grep "domains_all.lst" | cut -d : -f 2,3 | tr -d \" | wget -qi -
+wget -qO domains_all.lst https://github.com/1andrevich/Re-filter-lists/releases/latest/download/domains_all.lst 
 echo '{
     "version": 1,
     "rules": [
@@ -17,8 +17,8 @@ number_of_domains_ech=0
 start_time=`date +%s`
 while read domain; do 
   if dig type65 +noall +answer $domain @1.1.1.1 | grep ech >/dev/null
-    then echo $domain >> domains_ech.txt && number_of_domains_ech=$((number_of_domains_ech + 1))
-    else echo $(cat domains.json | jq ".rules[0].domain_suffix |= .  + [\"$domain\"]") > domains.json && echo $domain >> domains_noech.txt && echo $(cat amnezia.json | jq ". |= . + [{\"hostname\": \"$domain\", \"ip\": \"\"}]") > amnezia.json && number_of_domains_noech=$((number_of_domains_noech + 1))
+    then echo $domain >> domains_ech.lst && number_of_domains_ech=$((number_of_domains_ech + 1))
+    else echo $(cat domains.json | jq ".rules[0].domain_suffix |= .  + [\"$domain\"]") > domains.json && echo "nftset=/$domain/4#inet#fw4#vpn_domains" >> domains_noech_dnsmasq.lst && echo $domain >> domains_noech.lst && echo $(cat amnezia.json | jq ". |= . + [{\"hostname\": \"$domain\", \"ip\": \"\"}]") > amnezia.json && number_of_domains_noech=$((number_of_domains_noech + 1))
   fi
 done <domains_all.lst 
 finish_time=`date +%s`
