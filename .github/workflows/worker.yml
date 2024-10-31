@@ -1,0 +1,54 @@
+name: Update ECH lists
+
+on:
+  schedule:
+    - cron: '0 0 * * *' # 00:00 UTC
+  workflow_dispatch:
+
+jobs:
+  run-script:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y wget jq
+
+          sudo apt-get install -y gh
+
+          latest_version=$(curl -s https://api.github.com/repos/SagerNet/sing-box/releases/latest | jq -r '.tag_name' | sed 's/^v//')
+          wget https://github.com/SagerNet/sing-box/releases/download/v$latest_version/sing-box-$latest_version-linux-amd64.tar.gz -O sing-box.tar.gz
+          
+          tar -xzf sing-box.tar.gz
+          mv "sing-box-$latest_version-linux-amd64/sing-box" /usr/local/bin/
+          rm -rf sing-box.tar.gz "sing-box-$latest_version-linux-amd64"
+
+      - name: Run script
+        run: |
+          chmod +x get_ech.sh
+          ./get_ech.sh
+
+      - name: Compile .SRS files from .JSON
+        run: |
+          sing-box rule-set compile domains_ech.json -o domains_ech.srs
+          sing-box rule-set compile domains_noech.json -o domains_noech.srs
+
+      - name: Create release and upload assets
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          release_date=$(date +'%d-%m-%y')
+          
+          gh release create "$release_date" \
+            amnezia.json \
+            domains_ech.lst \
+            domains_ech.srs \
+            domains_noech.lst \
+            domains_noech.srs \
+            domains_noech_dnsmasq.lst \
+            --title "$release_date" \
+            --notes "Актуальные списки по состоянию на $release_date"
