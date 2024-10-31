@@ -27,8 +27,6 @@ wget -qO domains_all.lst https://github.com/1andrevich/Re-filter-lists/releases/
 > amnezia.json
 
 number_of_domains=$(wc -l < domains_all.lst)
-number_of_domains_noech=0
-number_of_domains_ech=0
 start_time=`date +%s`
 
 echo "Number of domains: $number_of_domains"
@@ -39,11 +37,9 @@ process_domain() {
 
   if dig type65 +noall +answer "$domain" @1.1.1.1 | grep -q ech; then
     echo "$domain" >> domains_ech.lst
-    ((number_of_domains_ech++))
   else
     echo "$domain" >> domains_noech.lst
     echo "nftset=/$domain/4#inet#fw4#vpn_domains" >> domains_noech_dnsmasq.lst
-    ((number_of_domains_noech++))
   fi
 }
 
