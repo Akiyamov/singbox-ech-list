@@ -23,15 +23,27 @@ jobs:
 
           bash <(curl -fsSL https://sing-box.app/deb-install.sh)
 
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
       - name: Run script
         run: |
           chmod +x get_ech.sh
           ./get_ech.sh
+          mkdir data 
+          cp domains_ech.lst domains_noech.lst data/domains_ech
+          cp domains_noech.lst data/domains_noech
 
       - name: Compile .SRS files from .JSON
         run: |
           sing-box rule-set compile domains_ech.json -o domains_ech.srs
           sing-box rule-set compile domains_noech.json -o domains_noech.srs
+
+      - name: Build ech.dat file
+        run: |
+          go run main.go --outputname=ech.dat 
 
       - name: Create release and upload assets
         env:
@@ -48,5 +60,6 @@ jobs:
             domains_noech.lst \
             domains_noech.srs \
             domains_noech_dnsmasq.lst \
+            ech.dat \
             --title "$release_date" \
             --notes "Доменов с ECH: $ech_length, доменов без ECH: $no_ech_length"
