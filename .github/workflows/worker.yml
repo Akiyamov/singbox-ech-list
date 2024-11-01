@@ -1,0 +1,52 @@
+name: Update ECH lists
+
+on:
+  push:
+    paths:
+      - 'get_ech.sh'
+  schedule:
+    - cron: '0 0 * * *' # 00:00 UTC
+  workflow_dispatch:
+
+jobs:
+  run-script:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update 
+          sudo apt-get install -y wget jq parallel
+
+          bash <(curl -fsSL https://sing-box.app/deb-install.sh)
+
+      - name: Run script
+        run: |
+          chmod +x get_ech.sh
+          ./get_ech.sh
+
+      - name: Compile .SRS files from .JSON
+        run: |
+          sing-box rule-set compile domains_ech.json -o domains_ech.srs
+          sing-box rule-set compile domains_noech.json -o domains_noech.srs
+
+      - name: Create release and upload assets
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          no_ech_length=$(wc -l domains_noech.lst)
+          ech_length=$(wc -l domains_ech.lst)
+          release_date=$(date +'%d-%m-%y')
+          
+          gh release create "$release_date" \
+            amnezia.json \
+            domains_ech.lst \
+            domains_ech.srs \
+            domains_noech.lst \
+            domains_noech.srs \
+            domains_noech_dnsmasq.lst \
+            --title "$release_date" \
+            --notes "Доменов с ECH: $ech_length, доменов без ECH: $no_ech_length"
