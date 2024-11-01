@@ -1,6 +1,9 @@
 name: Update ECH lists
 
 on:
+  push:
+    paths:
+      - 'get_ech.sh'
   schedule:
     - cron: '0 0 * * *' # 00:00 UTC
   workflow_dispatch:
@@ -15,17 +18,10 @@ jobs:
 
       - name: Install dependencies
         run: |
-          sudo apt-get update
+          sudo apt-get update 
           sudo apt-get install -y wget jq parallel
 
-          sudo apt-get install -y gh
-
-          latest_version=$(curl -s https://api.github.com/repos/SagerNet/sing-box/releases/latest | jq -r '.tag_name' | sed 's/^v//')
-          wget https://github.com/SagerNet/sing-box/releases/download/v$latest_version/sing-box-$latest_version-linux-amd64.tar.gz -O sing-box.tar.gz
-          
-          tar -xzf sing-box.tar.gz
-          mv "sing-box-$latest_version-linux-amd64/sing-box" /usr/local/bin/
-          rm -rf sing-box.tar.gz "sing-box-$latest_version-linux-amd64"
+          bash <(curl -fsSL https://sing-box.app/deb-install.sh)
 
       - name: Run script
         run: |
@@ -41,6 +37,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          no_ech_length=$(wc -l domains_noech.lst)
+          ech_length=$(wc -l domains_ech.lst)
           release_date=$(date +'%d-%m-%y')
           
           gh release create "$release_date" \
@@ -51,4 +49,4 @@ jobs:
             domains_noech.srs \
             domains_noech_dnsmasq.lst \
             --title "$release_date" \
-            --notes "Актуальные списки по состоянию на $release_date"
+            --notes "Доменов с ECH: $ech_length, доменов без ECH: $no_ech_length"
