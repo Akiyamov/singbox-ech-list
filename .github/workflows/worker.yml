@@ -33,7 +33,7 @@ jobs:
           chmod +x get_ech.sh
           ./get_ech.sh
           mkdir data 
-          cp domains_ech.lst domains_noech.lst data/domains_ech
+          cp domains_ech.lst data/domains_ech
           cp domains_noech.lst data/domains_noech
 
       - name: Compile .SRS files from .JSON
