@@ -49,8 +49,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          no_ech_length=$(wc -l domains_noech.lst)
-          ech_length=$(wc -l domains_ech.lst)
+          no_ech_length=$(wc -l domains_noech.lst | tr ' ' '\n' | head -1)
+          ech_length=$(wc -l domains_ech.lst | tr ' ' '\n' | head -1)
           release_date=$(date +'%d-%m-%y')
           
           gh release create "$release_date" \
