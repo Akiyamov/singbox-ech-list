@@ -2,17 +2,22 @@
 
 # Checking dependencies
 if ! command -v jq &> /dev/null; then
-  echo "Package \"jq\" is not installed. Please install \"jq\" to continue"
+  echo "Package \"jq\" is not installed. Please install \"jq\" to continue."
   exit 1
 fi
 
 if ! command -v dig &> /dev/null; then
-  echo "Package \"dig\" is not installed. Please install \"dig\" to continue"
+  echo "Package \"dig\" is not installed. Please install \"dnsutils\" to continue."
   exit 1
 fi
 
 if ! command -v parallel &> /dev/null; then
-  echo "Package \"parallel\" is not installed. Sequential mode will be used"
+  read -p "Package \"parallel\" is not installed. Script will need 4 hours to complete in sequential mode. Are you sure? (y/N)" seq_choice
+  case "$seq_choice" in 
+    y|Y ) echo "Running script in sequential mode.";;
+    n|N ) echo "Aborting script." && exit 1;;
+    * ) echo "Invalid response." && exit 1;;
+  esac
 fi
 
 # Getting a file with blocked domains
@@ -26,6 +31,7 @@ wget -qO domains_all.lst https://github.com/1andrevich/Re-filter-lists/releases/
 > domains_noech.json
 > amnezia.json
 
+parallel_requests=10
 number_of_domains=$(wc -l < domains_all.lst)
 start_time=`date +%s`
 
@@ -47,7 +53,7 @@ export -f process_domain
 
 # Selecting a processing method depending on the presence of a dependency
 if command -v parallel &> /dev/null; then
-  cat domains_all.lst | parallel -j 4 process_domain
+  cat domains_all.lst | parallel -j $parallel_requests process_domain
 else
   while IFS= read -r domain; do
     process_domain "$domain"

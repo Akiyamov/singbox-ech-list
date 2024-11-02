@@ -51,7 +51,7 @@ jobs:
         run: |
           no_ech_length=$(wc -l domains_noech.lst | tr ' ' '\n' | head -1)
           ech_length=$(wc -l domains_ech.lst | tr ' ' '\n' | head -1)
-          release_date=$(date +'%d-%m-%y')
+          release_date=$(date +'%d-%m-%y-%H-%M')
           
           gh release create "$release_date" \
             amnezia.json \

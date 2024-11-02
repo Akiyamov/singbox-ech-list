@@ -17,6 +17,7 @@
 
 ### Прямые ссылки на файлы
 
+* V2fly/Xray DAT https://github.com/Akiyamov/singbox-ech-list/releases/latest/download/ech.dat
 * Sing-box ECH Rule-set https://github.com/Akiyamov/singbox-ech-list/releases/latest/download/domains_ech.srs
 * Sing-box NoECH Rule-set https://github.com/Akiyamov/singbox-ech-list/releases/latest/download/domains_noech.srs
 * AmneziaVPN NoECH JSON https://github.com/Akiyamov/singbox-ech-list/releases/latest/download/amnezia.json
@@ -24,7 +25,32 @@
 
 ### Xray 
 
-TBD
+<details>
+    <summary>Нажмите сюда, чтоб раскрыть</summary>
+
+Закинуть [DAT файл](https://github.com/Akiyamov/singbox-ech-list/releases/latest/download/ech.dat) в /usr/share/xray и в конфиге `routing` прописать: 
+```json
+"routing": {
+  "domainStrategy": "IPIfNonMatch",
+  "rules": [
+    {
+      "type": "field",
+      "outboundTag": "proxy",
+      "domain": [
+        "ext:ech.dat:domains_noech"
+      ]
+    },    
+    {
+      "type": "field",
+      "outboundTag": "freedom",
+      "domain": [
+        "ext:ech.dat:domains_ech"
+      ]
+    }
+  ]
+}
+```
+</details>
 
 ### Sing-box
 
@@ -105,3 +131,14 @@ start () {
 }
 ```
 </details>
+
+## Как запустить у себя
+
+Нужно поставить следующие пакеты:
+
+* wget 
+* jq 
+* parallel
+* bind-tools
+
+После этого можно запускать скрипт. 
